@@ -1,7 +1,4 @@
 #include "tetris.h"
-#define ADD_BLOCK(w,x) waddch((w),' '|COLOR_PAIR(x));     \
-                       waddch((w),' '|COLOR_PAIR(x))
-#define ADD_EMPTY(w) waddch((w), ' '|COLOR_PAIR(0)); waddch((w), ' '|COLOR_PAIR(0))
 
 tetromino_map* init_all_block_types() {
   tetromino_map* blocks = malloc(7 * sizeof(tetromino_map));
@@ -156,34 +153,6 @@ void fill_block_matrix(tetromino_map* tetris, position states[4][4]) {
   }
 }
 
-void init_colors() {
-  start_color();
-  init_pair(1, COLOR_WHITE, COLOR_CYAN);
-  init_pair(2, COLOR_WHITE, COLOR_GREEN);  
-  init_pair(3, COLOR_WHITE, COLOR_YELLOW); 
-  init_pair(4, COLOR_WHITE, COLOR_MAGENTA);
-  init_pair(5, COLOR_WHITE, COLOR_GREEN);  
-  init_pair(6, COLOR_WHITE, COLOR_RED);    
-  init_pair(7, COLOR_WHITE, COLOR_BLUE);   
-  init_pair(8, COLOR_WHITE, COLOR_WHITE);  
-}
-
-void print_field(game* g, WINDOW* win) {
-  wclear(win);
-  box(win, 0, 0);
-  for (int i = 0; i < HEIGHT; i++) {
-    wmove(win,i + 1, 1);
-    for (int j = 0; j < WIDTH; j++) {
-      if(g->field[i][j] == 0) {
-        ADD_EMPTY(win);
-      } else {
-        ADD_BLOCK(win, g->field[i][j]);
-      }
-    }
-  }
-  wrefresh(win);
-}
-
 void put_block(game* game, tetromino* block) {
   for (int i = 0; i < 4; ++i) {
     int x = block->location.x + block->state[i].x;
@@ -297,26 +266,6 @@ void check_lines_full(game* game) {
   }
 }
 
-void display_score(WINDOW *win, game *game, tetromino_map* blocks)
-{
-  wclear(win);
-  wmove(win, 2, 0);
-  wprintw(win, "SCORE:\n%d\n", game->score );
-  wmove(win, 6, 0);
-  wprintw(win, "LINES:\n%d\n", game->cleared);
-  wmove(win, 10, 0);
-  wprintw(win, "LEVEL:\n%d\n", game->level);
-  wmove(win, 13, 0);
-  wprintw(win, "NEXT:");
-  wmove(win, 16, 0);
-  for(int i = 0; i < 4; ++i) {
-    wmove(win, 13 + game->next->state[i].y + 1, game->next->state[i].x * 2 + 1);
-    ADD_BLOCK(win, game->next->type + 1);
-  }
-
-  wrefresh(win);
-}
-
 game init_game(tetromino_map* blocks) {
   game game;
   game.state = start;
@@ -330,58 +279,3 @@ game init_game(tetromino_map* blocks) {
   return game;
 }
 
-int main() {
-  initscr();
-  cbreak();
-  noecho();
-  keypad(stdscr, 1);
-  nodelay(stdscr, 1);
-  scrollok(stdscr, 1);
-  curs_set(0);
-  mouseinterval(1);
-  keypad(stdscr, TRUE);
-  srand(time(NULL));
-  init_colors();
-  WINDOW*  win = newwin(HEIGHT + 2 ,2 *  WIDTH + 2, 0,0);
-  WINDOW*  score = newwin(HEIGHT + 2 ,WIDTH + 2, 0, 2 *  WIDTH + 4);
-  tetromino_map* blocks = init_all_block_types();
-  game game = init_game(blocks);
-  create_new_falling(&game, blocks);
-  put_block(&game, game.current);
-  while (1) {
-    int ch = getch();
-    if (ch == KEY_LEFT) {
-      move_right_or_left(&game, -1);
-    } else if (ch == KEY_RIGHT) {
-      move_right_or_left(&game, 1);
-    } else if (ch == ' ') {
-      process_rotation(&game, blocks);
-    } else if (ch == 'q') {
-      break;
-    }
-    if(!move_block_down(&game, blocks)) {
-      put_block(&game, game.current);
-      break;
-    }
-    timeout(500 * pow(0.8, game.level));
-    game.level = game.score / 600 + 1;
-    if(game.level > 10) game.level = 10;
-    print_field(&game, win);
-    display_score(score, &game, blocks);
-  }
-
-   wclear(stdscr);
-  
-  endwin();
-  delwin(win);
-  delwin(score);
-  for (int i = 0; i < HEIGHT; ++i) {
-    free(game.field[i]);
-  }
-  free(game.field);
-  free(game.next);
-  free(game.current);
-  free(blocks);
- 
-  return 0;
-}
