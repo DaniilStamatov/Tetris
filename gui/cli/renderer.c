@@ -40,10 +40,14 @@ void display_score(WINDOW *win, game *game)
   wmove(win, 13, 0);
   wprintw(win, "NEXT:");
   wmove(win, 16, 0);
+  wprintw(win, "HIGH SCORE:\n%d\n", game->high_score);
+  wmove(win, 19, 0);
   for(int i = 0; i < 4; ++i) {
     wmove(win, 13 + game->next->state[i].y + 1, game->next->state[i].x * 2 + 1);
     ADD_BLOCK(win, game->next->type + 1);
   }
+
+
   wrefresh(win);
 }
 
