@@ -1,14 +1,13 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -lm
+CFLAGS = -Wall -Wextra  -Werror -std=c11 -g
+GCOV_FLAGS = --coverage -fprofile-arcs -ftest-coverage
+CHECK_LIBS = -lcheck -lsubunit -lrt -lpthread -lm
 
-# Определяем целевой исполняемый файл
-TARGET = tetris.exe
+TARGET = /tetris.a
 
-# Определяем исходные файлы
-SRCS = game.c brick_game/tetris/tetris.c gui/cli/renderer.c # Добавьте сюда все ваши исходные файлы
+SRCS = game.c brick_game/tetris/tetris.c gui/cli/renderer.c
 OBJS = $(SRCS:.c=.o)
 
-# Правило по умолчанию
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
@@ -16,6 +15,14 @@ $(TARGET): $(OBJS)
 
 %.o: %.c
 	$(CC) $(CFLAGS)   -c $< -o $@
+
+clang_format:
+	cp ../materials/linters/.clang-format .clang-format
+	clang-format -i *.c *.h
+	clang-format -i brick_game/tetris/*.c brick_game/tetris/*.h
+	clang-format -i gui/cli/*.c gui/cli/*.h
+	clang-format -i unit_test/*.c unit_test/*.h
+	rm -f .clang-format
 
 clean:
 	rm -f $(OBJS) $(TARGET)
