@@ -3,7 +3,7 @@
 
 int main() {
   init_ncurses();
-  srand(get_time());
+  srand(time(NULL));
   GameInfo_t game_info = {0};
   while (game_info.pause != 3) {
     game_info = updateCurrentState();
